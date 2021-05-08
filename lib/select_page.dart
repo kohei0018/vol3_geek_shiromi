@@ -1,23 +1,43 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/stop_alarm.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
-
+import 'package:http/http.dart' as http;
 import 'alarm_list.dart';
 import 'create_group.dart';
+import 'package:intl/intl.dart';
+import 'dart:async';
 
 class SelectPage extends StatefulWidget {
   final String user;
-
   const SelectPage({Key key, this.user}) : super(key: key);
-
-
   @override
   _CreateSelectPage createState() => _CreateSelectPage();
 }
 
+
+
 class _CreateSelectPage extends State<SelectPage> {
+  String _time = '';
+
   @override
+  void initState() {
+    Timer.periodic(
+      Duration(seconds: 30),
+      _onTimer,
+    );
+    super.initState();
+  }
+
+  void _onTimer(Timer timer) {
+    var now = DateTime.now();
+    var formatter = DateFormat('HH:mm:ss');
+    var formattedTime = formatter.format(now);
+    setState(() => _time = formattedTime);
+    print(_time);
+  }
 
   List<String> titleList = ["グループ作成","アラームのリスト","アラーム停止"];
 
@@ -46,10 +66,12 @@ class _CreateSelectPage extends State<SelectPage> {
             onTap: () => Navigator.push(
                 context, MaterialPageRoute(builder: (context) => AlarmList(
               title: titleList[1],
+              user: widget.user
             ))
             ),
           ),
           Divider(thickness: 3),
+
 
 
           ListTile(
