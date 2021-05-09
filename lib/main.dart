@@ -1,6 +1,10 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_app/select_page.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
+import 'package:http/http.dart' as http;
+import 'dart:async';
+import 'dart:convert';
 
 
 void main() {
@@ -29,8 +33,45 @@ class MyHomePage extends StatefulWidget {
 }
 
 
+////////////////////API POST処理///////////////////////
+
+Future<Album> createAlbum(String name) async {
+  final response = await http.post(
+    Uri.https('54.238.142.190', '/users'),
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+    },
+    body: jsonEncode(<String, String>{
+      'name': name,
+    }),
+  );
+
+  if (response.statusCode == 201) {
+    return Album.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to create album.');
+  }
+}
+
+class Album {
+  final String name;
+
+  Album({this.name});
+
+  factory Album.fromJson(Map<String, dynamic> json) {
+    return Album(
+      name: json['name'],
+    );
+  }
+}
+
+////////////////////API POST処理///////////////////////
+
+
 class _MyHomePageState extends State<MyHomePage> {
   List<String> titleList = ["アラーム設定","アラームのリスト","グループ検索"];
+
+
 
   //アプリのUI部分
   @override
@@ -88,3 +129,4 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+

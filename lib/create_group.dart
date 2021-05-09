@@ -1,21 +1,23 @@
+
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 
 ////////////////////API POST処理///////////////////////
 
-Future<Album> createAlbum(String title, user) async {
+Future<Album> createAlbum(String name, setTime) async {
   final response = await http.post(
-    Uri.https('jsonplaceholder.typicode.com', 'albums'),
+    Uri.https('54.238.142.190', '/groups'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
     body: jsonEncode(<String, String>{
-      'title': title,
-      'user' :user,
+      'name': name,
+      'alarm' :setTime,
     }),
   );
 
@@ -27,17 +29,15 @@ Future<Album> createAlbum(String title, user) async {
 }
 
 class Album {
-  final int id;
-  final String title;
-  final user;
+  final String name;
+  final String setTime;
 
-  Album({this.id, this.title, this.user});
+  Album({this.name, this.setTime});
 
   factory Album.fromJson(Map<String, dynamic> json) {
     return Album(
-      id: json['id'],
-      title: json['title'],
-      user: json['user']
+      name: json['name'],
+      setTime: json['alarm'],
     );
   }
 }
@@ -68,21 +68,7 @@ class _CreateGroupState extends State<CreateGroup> {
   String _time='';
 
   @override
-  void initState() {
-    Timer.periodic(
-      Duration(seconds: 30),
-      _onTimer,
-    );
-    super.initState();
-  }
 
-  void _onTimer(Timer timer) {
-    var now = DateTime.now();
-    var formatter = DateFormat('HH:mm:ss');
-    var formattedTime = formatter.format(now);
-    setState(() => _time = formattedTime);
-    print(_time);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -98,17 +84,6 @@ class _CreateGroupState extends State<CreateGroup> {
             Container(
               child: Text("ユーザー名 :" + (widget.user)),
             ),
-
-            //設定時間入力
-            TextField(
-              decoration: InputDecoration(
-                  hintText: "設定時間を入力してください (例)8:30"
-              ),
-              onChanged: (text) {
-                setTime = text;
-                print("Time: $setTime");
-              },
-            ),
             Container(
               child: (_futureAlbum == null)
               ? Column(
@@ -116,14 +91,21 @@ class _CreateGroupState extends State<CreateGroup> {
                 children: <Widget>[
                   TextField(
                     controller: _controller,
-                    decoration: InputDecoration(hintText: 'Enter Title'),
+                    decoration: InputDecoration(
+                        hintText: '設定時間を入力してください'
+                    ),
+                    onChanged: (text) {
+                      setTime = text;
+                      print("Time: $setTime");
+                    },
                   ),
                   ElevatedButton(
-                    child: Text('Create Data'),
+                    child: Text('作成する'),
                     onPressed: () {
                       print(widget.user);
+                      Navigator.pop(context, setTime);
                       setState(() {
-                        _futureAlbum = createAlbum(_controller.text, widget.user);
+                        _futureAlbum = createAlbum(widget.user, _controller.text);
                       });
                     },
                   ),
@@ -133,7 +115,8 @@ class _CreateGroupState extends State<CreateGroup> {
                 future: _futureAlbum,
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
-                    return Text('ユーザー名：' + snapshot.data.user + "    設定時間：" + snapshot.data.title);
+                    print(snapshot.data);
+                    return Text('ユーザー名：' + snapshot.data.name + "    設定時間：" + snapshot.data.setTime);
                   } else if (snapshot.hasError) {
                     return Text("${snapshot.error}");
                   }
@@ -142,13 +125,7 @@ class _CreateGroupState extends State<CreateGroup> {
                 },
               ),
             ),
-            // RaisedButton(
-            //   child: Text("作成する"),
-            //   onPressed: () {
-            //     print("user : $widget.user");
-            //     print("setTime : $setTime");
-            //   },
-            // ),
+
           ],
         ),
       ),
@@ -157,3 +134,4 @@ class _CreateGroupState extends State<CreateGroup> {
   }
 
 }
+
